@@ -76,13 +76,7 @@ public sealed class HistoryManager
 
         double avgDaily = activeDays > 0 ? total30d / activeDays : 0;
 
-        string remainingColor = state.Remaining / Math.Max(state.TotalCredits, 0.01) switch
-        {
-            > 0.5 => "#22c55e",
-            > 0.2 => "#eab308",
-            > 0.05 => "#f97316",
-            _ => "#ef4444"
-        };
+        string remainingColor = "#6366f1";  // indigo
 
         // Build daily log rows
         var logRows = new System.Text.StringBuilder();

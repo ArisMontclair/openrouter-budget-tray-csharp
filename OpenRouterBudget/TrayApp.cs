@@ -164,14 +164,7 @@ public sealed class TrayApp : ApplicationContext
     // ─── Icon Drawing ────────────────────────────────────────────────────────
     private static Icon CreateBudgetIcon(double remaining, double total)
     {
-        double pct = total > 0 ? remaining / total : 0;
-        Color color = pct switch
-        {
-            > 0.5 => Color.FromArgb(34, 197, 94),   // green
-            > 0.2 => Color.FromArgb(234, 179, 8),   // yellow
-            > 0.05 => Color.FromArgb(249, 115, 22),  // orange
-            _ => Color.FromArgb(239, 68, 68)          // red
-        };
+        Color color = Color.FromArgb(99, 102, 241);  // indigo
 
         using var bmp = new Bitmap(16, 16);
         using var g = Graphics.FromImage(bmp);
