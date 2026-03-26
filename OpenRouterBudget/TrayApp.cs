@@ -1,8 +1,3 @@
-using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.Drawing.Imaging;
-using System.Drawing.Text;
-
 namespace OpenRouterBudget;
 
 public sealed class TrayApp : ApplicationContext
@@ -118,13 +113,13 @@ public sealed class TrayApp : ApplicationContext
     {
         if (_state.Error != null)
         {
-            _trayIcon.Icon = CreateErrorIcon();
+            SetTrayIcon(TrayIconRenderer.CreateErrorIcon());
             _trayIcon.Text = $"OpenRouter Budget\nError: {_state.Error[..Math.Min(50, _state.Error.Length)]}";
             _headerItem!.Text = $"Error: {_state.Error[..Math.Min(40, _state.Error.Length)]}";
         }
         else
         {
-            _trayIcon.Icon = CreateBudgetIcon(_state.Remaining, _state.TotalCredits, _state.Today);
+            SetTrayIcon(TrayIconRenderer.CreateBudgetIcon(_state.Today));
             _trayIcon.Text = $"Remaining: ${_state.Remaining:F2} / ${_state.TotalCredits:F2}\nToday: ${_state.Today:F4}";
             _headerItem!.Text = $"  ${_state.Remaining:F2} left of ${_state.TotalCredits:F2}";
 
@@ -161,61 +156,11 @@ public sealed class TrayApp : ApplicationContext
         Application.Exit();
     }
 
-    // ─── Icon Drawing ────────────────────────────────────────────────────────
-
-    /// <summary>
-    /// Format a dollar amount for the tray icon. Returns a short string like "$142", "$12.5", "$3.20", "$0.45".
-    /// </summary>
-    private static string FormatIconAmount(double amount)
+    private void SetTrayIcon(Icon icon)
     {
-        if (amount >= 1000)
-            return $"${amount / 1000:F1}k";  // "$1.2k"
-        if (amount >= 100)
-            return $"${amount:F0}";           // "$142"
-        if (amount >= 10)
-            return $"${amount:F1}";           // "$12.5"
-        if (amount >= 1)
-            return $"${amount:F2}";           // "$3.20"
-        return $"${amount:F2}";               // "$0.45"
+        Icon? previous = _trayIcon.Icon;
+        _trayIcon.Icon = icon;
+        previous?.Dispose();
     }
 
-    /// <summary>
-    /// Create a 32×16 tray icon with two lines of text:
-    ///   Top:    remaining budget (bold, white)
-    ///   Bottom: today's spend   (dimmer gray)
-    /// </summary>
-    private static Icon CreateBudgetIcon(double remaining, double total, double today)
-    {
-        const int W = 32, H = 16;
-
-        using var bmp = new Bitmap(W, H);
-        using var g = Graphics.FromImage(bmp);
-        g.SmoothingMode = SmoothingMode.AntiAlias;
-        g.TextRenderingHint = TextRenderingHint.ClearTypeGridFit;
-        g.Clear(Color.Transparent);
-
-        using var boldFont = new Font("Segoe UI", 8.5f, FontStyle.Bold, GraphicsUnit.Pixel);
-        using var regFont  = new Font("Segoe UI", 7.5f, FontStyle.Regular, GraphicsUnit.Pixel);
-
-        g.DrawString(FormatIconAmount(remaining), boldFont, Brushes.White, 0, 0);
-        g.DrawString(FormatIconAmount(today), regFont, new SolidBrush(Color.FromArgb(160, 160, 160)), 0, 8);
-
-        return Icon.FromHandle(bmp.GetHicon());
-    }
-
-    private static Icon CreateErrorIcon()
-    {
-        const int W = 32, H = 16;
-
-        using var bmp = new Bitmap(W, H);
-        using var g = Graphics.FromImage(bmp);
-        g.SmoothingMode = SmoothingMode.AntiAlias;
-        g.TextRenderingHint = TextRenderingHint.ClearTypeGridFit;
-        g.Clear(Color.Transparent);
-
-        using var font = new Font("Segoe UI", 8.5f, FontStyle.Bold, GraphicsUnit.Pixel);
-        g.DrawString("ERR", font, Brushes.White, 0, 2);
-
-        return Icon.FromHandle(bmp.GetHicon());
-    }
 }

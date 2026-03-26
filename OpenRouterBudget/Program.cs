@@ -11,6 +11,8 @@ static class Program
     [STAThread]
     static void Main()
     {
+        Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
+
         // Single-instance check
         const string mutexName = "OpenRouterBudget_SingleInstance";
         _mutex = new Mutex(true, mutexName, out bool createdNew);
