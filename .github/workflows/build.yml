@@ -1,0 +1,33 @@
+name: Build & Release
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Build
+        run: dotnet publish OpenRouterBudget/OpenRouterBudget.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o publish
+
+      - name: Create config template
+        run: |
+          Set-Content -Path publish/config.json -Value '{"api_key":"sk-or-v1-PASTE_YOUR_KEY_HERE"}'
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: OpenRouterBudget
+          path: |
+            publish/OpenRouterBudget.exe
+            publish/config.json
+          retention-days: 30
