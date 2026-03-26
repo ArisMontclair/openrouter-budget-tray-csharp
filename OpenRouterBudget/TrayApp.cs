@@ -124,7 +124,7 @@ public sealed class TrayApp : ApplicationContext
         }
         else
         {
-            _trayIcon.Icon = CreateBudgetIcon(_state.Remaining, _state.TotalCredits);
+            _trayIcon.Icon = CreateBudgetIcon(_state.Remaining, _state.TotalCredits, _state.Today);
             _trayIcon.Text = $"Remaining: ${_state.Remaining:F2} / ${_state.TotalCredits:F2}\nToday: ${_state.Today:F4}";
             _headerItem!.Text = $"  ${_state.Remaining:F2} left of ${_state.TotalCredits:F2}";
 
@@ -162,39 +162,86 @@ public sealed class TrayApp : ApplicationContext
     }
 
     // ─── Icon Drawing ────────────────────────────────────────────────────────
-    private static Icon CreateBudgetIcon(double remaining, double total)
-    {
-        Color color = Color.FromArgb(99, 102, 241);  // indigo
 
-        using var bmp = new Bitmap(16, 16);
+    /// <summary>
+    /// Format a dollar amount for the tray icon. Returns a short string like "$142", "$12.5", "$3.20", "$0.45".
+    /// </summary>
+    private static string FormatIconAmount(double amount)
+    {
+        if (amount >= 1000)
+            return $"${amount / 1000:F1}k";  // "$1.2k"
+        if (amount >= 100)
+            return $"${amount:F0}";           // "$142"
+        if (amount >= 10)
+            return $"${amount:F1}";           // "$12.5"
+        if (amount >= 1)
+            return $"${amount:F2}";           // "$3.20"
+        return $"${amount:F2}";               // "$0.45"
+    }
+
+    /// <summary>
+    /// Pick text color based on remaining budget ratio.
+    /// </summary>
+    private static Color GetBudgetColor(double remaining, double total)
+    {
+        if (total <= 0) return Color.FromArgb(156, 163, 175); // gray
+        double ratio = remaining / total;
+        if (ratio > 0.50) return Color.FromArgb(74, 222, 128);  // green
+        if (ratio > 0.25) return Color.FromArgb(250, 204, 21);  // yellow
+        if (ratio > 0.10) return Color.FromArgb(251, 146, 60);  // orange
+        return Color.FromArgb(248, 113, 113);                    // red
+    }
+
+    /// <summary>
+    /// Create a 32×16 tray icon with two lines of text:
+    ///   Top:    remaining budget (bold, colored by ratio)
+    ///   Bottom: today's spend   (dimmer)
+    /// Windows 11 taskbar supports wide notification icons.
+    /// </summary>
+    private static Icon CreateBudgetIcon(double remaining, double total, double today)
+    {
+        const int W = 32, H = 16;
+
+        using var bmp = new Bitmap(W, H);
         using var g = Graphics.FromImage(bmp);
         g.SmoothingMode = SmoothingMode.AntiAlias;
+        g.TextRenderingHint = TextRenderingHint.ClearTypeGridFit;
         g.Clear(Color.Transparent);
 
-        using var brush = new SolidBrush(color);
-        g.FillEllipse(brush, 1, 1, 14, 14);
+        // Use Segoe UI bold at 9px — compact but readable in tray
+        using var boldFont = new Font("Segoe UI", 8.5f, FontStyle.Bold, GraphicsUnit.Pixel);
+        using var regFont  = new Font("Segoe UI", 7.5f, FontStyle.Regular, GraphicsUnit.Pixel);
 
-        using var font = new Font("Segoe UI", 9f, FontStyle.Bold, GraphicsUnit.Pixel);
-        var size = g.MeasureString("$", font);
-        g.DrawString("$", font, Brushes.White,
-            (16 - size.Width) / 2, (16 - size.Height) / 2);
+        var remainColor = GetBudgetColor(remaining, total);
+        var todayColor  = Color.FromArgb(180, remainColor.R, remainColor.G, remainColor.B); // 70% opacity version
+
+        using var remainBrush = new SolidBrush(remainColor);
+        using var todayBrush  = new SolidBrush(todayColor);
+
+        string topLine    = FormatIconAmount(remaining);
+        string bottomLine = FormatIconAmount(today);
+
+        // Top line: remaining (y=0)
+        g.DrawString(topLine, boldFont, remainBrush, 0, 0);
+        // Bottom line: today (y=8)
+        g.DrawString(bottomLine, regFont, todayBrush, 0, 8);
 
         return Icon.FromHandle(bmp.GetHicon());
     }
 
     private static Icon CreateErrorIcon()
     {
-        using var bmp = new Bitmap(16, 16);
+        const int W = 32, H = 16;
+
+        using var bmp = new Bitmap(W, H);
         using var g = Graphics.FromImage(bmp);
         g.SmoothingMode = SmoothingMode.AntiAlias;
+        g.TextRenderingHint = TextRenderingHint.ClearTypeGridFit;
         g.Clear(Color.Transparent);
 
-        g.FillEllipse(Brushes.Gray, 1, 1, 14, 14);
-
-        using var font = new Font("Segoe UI", 9f, FontStyle.Bold, GraphicsUnit.Pixel);
-        var size = g.MeasureString("?", font);
-        g.DrawString("?", font, Brushes.White,
-            (16 - size.Width) / 2, (16 - size.Height) / 2);
+        using var font = new Font("Segoe UI", 8.5f, FontStyle.Bold, GraphicsUnit.Pixel);
+        using var brush = new SolidBrush(Color.FromArgb(248, 113, 113)); // red
+        g.DrawString("ERR", font, brush, 0, 2);
 
         return Icon.FromHandle(bmp.GetHicon());
     }
