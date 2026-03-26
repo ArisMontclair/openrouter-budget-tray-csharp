@@ -1,6 +1,7 @@
 @echo off
 REM Build OpenRouter Budget Tray - Windows 11
 REM Produces a single self-contained .exe in publish\
+cd /d "%~dp0"
 echo.
 echo  Building OpenRouter Budget...
 echo.
