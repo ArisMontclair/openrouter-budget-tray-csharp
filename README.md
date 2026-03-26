@@ -2,28 +2,21 @@
 
 Native Windows 11 system tray icon showing your OpenRouter credits and daily spend. Single self-contained `.exe`, no install needed.
 
+![Tray icon screenshot](icon-tray-image.jpg)
+
 ## Features
 
-- Color-coded tray icon (green/yellow/orange/red by remaining budget)
-- Hover shows remaining balance + today's spend
+- Remaining budget + today's spend shown directly in the tray
+- Hover tooltip with full breakdown (remaining / today / weekly / monthly)
 - Right-click: today / week / month / last 7 days
 - 30-day spend history with bar chart dashboard
 - Auto-refreshes every 2 minutes
 - Single instance (no duplicates)
 - Auto-start on boot
 
-## Requirements
+## Download
 
-- Windows 11
-- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) (build-time only)
-
-## Setup
-
-```
-1. Run build.bat                  (compiles to single .exe)
-2. Edit publish\config.json       (paste your API key)
-3. Run publish\OpenRouterBudget.exe
-```
+Grab the latest `.exe` from [Releases](../../releases) — no .NET SDK needed.
 
 To auto-start with Windows: run `install_autostart.bat`.
 
