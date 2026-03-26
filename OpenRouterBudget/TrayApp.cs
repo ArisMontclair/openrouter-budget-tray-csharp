@@ -180,23 +180,9 @@ public sealed class TrayApp : ApplicationContext
     }
 
     /// <summary>
-    /// Pick text color based on remaining budget ratio.
-    /// </summary>
-    private static Color GetBudgetColor(double remaining, double total)
-    {
-        if (total <= 0) return Color.FromArgb(156, 163, 175); // gray
-        double ratio = remaining / total;
-        if (ratio > 0.50) return Color.FromArgb(74, 222, 128);  // green
-        if (ratio > 0.25) return Color.FromArgb(250, 204, 21);  // yellow
-        if (ratio > 0.10) return Color.FromArgb(251, 146, 60);  // orange
-        return Color.FromArgb(248, 113, 113);                    // red
-    }
-
-    /// <summary>
     /// Create a 32×16 tray icon with two lines of text:
-    ///   Top:    remaining budget (bold, colored by ratio)
-    ///   Bottom: today's spend   (dimmer)
-    /// Windows 11 taskbar supports wide notification icons.
+    ///   Top:    remaining budget (bold, white)
+    ///   Bottom: today's spend   (dimmer gray)
     /// </summary>
     private static Icon CreateBudgetIcon(double remaining, double total, double today)
     {
@@ -208,23 +194,11 @@ public sealed class TrayApp : ApplicationContext
         g.TextRenderingHint = TextRenderingHint.ClearTypeGridFit;
         g.Clear(Color.Transparent);
 
-        // Use Segoe UI bold at 9px — compact but readable in tray
         using var boldFont = new Font("Segoe UI", 8.5f, FontStyle.Bold, GraphicsUnit.Pixel);
         using var regFont  = new Font("Segoe UI", 7.5f, FontStyle.Regular, GraphicsUnit.Pixel);
 
-        var remainColor = GetBudgetColor(remaining, total);
-        var todayColor  = Color.FromArgb(180, remainColor.R, remainColor.G, remainColor.B); // 70% opacity version
-
-        using var remainBrush = new SolidBrush(remainColor);
-        using var todayBrush  = new SolidBrush(todayColor);
-
-        string topLine    = FormatIconAmount(remaining);
-        string bottomLine = FormatIconAmount(today);
-
-        // Top line: remaining (y=0)
-        g.DrawString(topLine, boldFont, remainBrush, 0, 0);
-        // Bottom line: today (y=8)
-        g.DrawString(bottomLine, regFont, todayBrush, 0, 8);
+        g.DrawString(FormatIconAmount(remaining), boldFont, Brushes.White, 0, 0);
+        g.DrawString(FormatIconAmount(today), regFont, new SolidBrush(Color.FromArgb(160, 160, 160)), 0, 8);
 
         return Icon.FromHandle(bmp.GetHicon());
     }
@@ -240,8 +214,7 @@ public sealed class TrayApp : ApplicationContext
         g.Clear(Color.Transparent);
 
         using var font = new Font("Segoe UI", 8.5f, FontStyle.Bold, GraphicsUnit.Pixel);
-        using var brush = new SolidBrush(Color.FromArgb(248, 113, 113)); // red
-        g.DrawString("ERR", font, brush, 0, 2);
+        g.DrawString("ERR", font, Brushes.White, 0, 2);
 
         return Icon.FromHandle(bmp.GetHicon());
     }
