@@ -21,7 +21,7 @@ jobs:
 
       - name: Create config template
         run: |
-          echo {"api_key":"sk-or-v1-PASTE_YOUR_KEY_HERE"} > publish/config.json
+          Set-Content -Path publish/config.json -Value '{"api_key":"sk-or-v1-PASTE_YOUR_KEY_HERE"}'
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
